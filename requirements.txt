@@ -1,0 +1,3 @@
+httpx>=0.27
+cryptography>=42
+forcedream>=0.3.0
