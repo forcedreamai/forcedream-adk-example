@@ -155,8 +155,13 @@ def invoke(client: httpx.Client, url: str, key: str, version: str) -> str:
     return r["result"]["id"]
 
 
-def wait_for_proof(client: httpx.Client, task_id: str, timeout_s: int = 300) -> dict:
-    # The proof is written when the execution settles, which is asynchronous.
+def wait_for_proof(client: httpx.Client, task_id: str, timeout_s: int = 660) -> dict:
+    # Two separate, asynchronous steps, not one: the task settles (seconds), then
+    # a proof-batching cron (every 5 minutes -- vercel.json) signs it into a
+    # retrievable proof. Confirmed by real timing on a live run: a task with
+    # completed_at only ~6s after creation still had no proof for ~21 minutes.
+    # 300s (one cycle, no margin) timed out on that exact run. 660s covers two
+    # full cycles plus margin for a task that lands just after a tick.
     # A 404 here means "not yet", not "never" -- treating it as failure would
     # report a working execution as broken.
     deadline = time.time() + timeout_s

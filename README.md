@@ -57,10 +57,13 @@ Four stages, all against production:
     3. execution      submits a real, billed task and waits for settlement
     4. verification   checks the Ed25519 proof via the published SDK
 
-**Expect roughly 90 seconds at stage 3.** Execution is queued and driven by a
-cron rather than run in the request, so settlement is not instant. The client
-prints elapsed time rather than a spinner, because a latency floor that is ours
-should be visible rather than disguised.
+**Expect several minutes at stage 3, not seconds.** Execution itself settles in
+seconds, but the signed proof is produced by a separate batching cron that runs
+every 5 minutes (confirmed: a real task with a completed_at six seconds after
+creation still had no retrievable proof 21 minutes later). The client polls for
+up to 11 minutes to cover two full cycles with margin, and prints elapsed time
+rather than a spinner, because a latency floor that is ours should be visible
+rather than disguised.
 
 A run costs 1–3p against your trial balance. Failed or schema-invalid
 executions are not charged.
